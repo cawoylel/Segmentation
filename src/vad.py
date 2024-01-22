@@ -10,6 +10,7 @@ from inaSpeechSegmenter import Segmenter
 from inaSpeechSegmenter.export_funcs import seg2csv
 import pandas as pd
 from tqdm import tqdm
+import uuid
 
 def parse_args():
     parser = ArgumentParser(description="Perform VAD to get only speech segment (without the music, noise, silence)")
@@ -31,7 +32,7 @@ def parse_args():
 def save_timestamps(output_path: Path, segmentation):
     with open(output_path, "w") as output_file:
         for item in segmentation:
-            output_file.write(json.dumps(item) + "\n")
+          output_file.write(json.dumps(item + (str(uuid.uuid1()),)) + "\n")
 
 def main():
     args = parse_args()
