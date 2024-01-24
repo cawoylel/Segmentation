@@ -37,8 +37,8 @@ def save_timestamps(output_path: Path, timestamps):
 def main():
     args = parse_args()
     segmenter = Segmenter(vad_engine="smn",
-                    detect_gender=False,
-                    batch_size=args.batch_size)
+                          detect_gender=False,
+                          batch_size=args.batch_size)
     output_folder = Path(args.output_folder)
     output_folder.mkdir(exist_ok=True, parents=True)
     for_total, input_files = tee(Path(args.data).glob("*.wav"), 2)
