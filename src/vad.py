@@ -36,7 +36,7 @@ def save_timestamps(output_path: Path, segmentation):
 
 def main():
     args = parse_args()
-    seg = Segmenter(vad_engine="smn",
+    segmenter = Segmenter(vad_engine="smn",
                     detect_gender=False,
                     batch_size=args.batch_size)
     output_folder = Path(args.output_folder)
@@ -45,7 +45,7 @@ def main():
     total = sum(1 for _ in for_total)
     for audio in tqdm(input_files, total=total):
         filename = audio.stem
-        segmentation = seg(audio)
+        segmentation = segmenter(audio)
         save_timestamps(output_folder / f"{filename}.jsonl", segmentation)
 
 if __name__ == "__main__":
