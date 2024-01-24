@@ -43,7 +43,7 @@ def main():
     output_folder.mkdir(exist_ok=True, parents=True)
     for_total, input_files = tee(Path(args.data).glob("*.wav"), 2)
     total = sum(1 for _ in for_total)
-    for audio in tqdm(Path(args.data).glob("*.wav"), total=total):
+    for audio in tqdm(input_files, total=total):
         filename = audio.stem
         segmentation = seg(audio)
         save_timestamps(output_folder / f"{filename}.jsonl", segmentation)

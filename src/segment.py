@@ -38,7 +38,7 @@ def generate_audio_chunks():
   for_total, input_files = tee(Path(args.segments).glob("*.jsonl"), 2)
   total = sum(1 for _ in for_total)
 
-  for jsonl in tqdm(Path(args.segments).glob("*.jsonl"), total=total):
+  for jsonl in tqdm(input_files, total=total):
     basename = jsonl.stem
     audio, sr = sf.read(data / f"{basename}.wav")
 
