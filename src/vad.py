@@ -1,14 +1,9 @@
 # Load the libraries
-from typing import List
 import json
 from itertools import tee
 from pathlib import Path
-import numpy as np
-import soundfile as sf
 from argparse import ArgumentParser
 from inaSpeechSegmenter import Segmenter
-from inaSpeechSegmenter.export_funcs import seg2csv
-import pandas as pd
 from tqdm import tqdm
 import uuid
 
