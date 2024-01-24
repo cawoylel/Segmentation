@@ -1,4 +1,3 @@
-import json
 import soundfile as sf
 from argparse import ArgumentParser
 from pathlib import Path
