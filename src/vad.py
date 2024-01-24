@@ -29,9 +29,9 @@ def parse_args():
                         type=int)
     return parser.parse_args()
 
-def save_timestamps(output_path: Path, segmentation):
+def save_timestamps(output_path: Path, timestamps):
     with open(output_path, "w") as output_file:
-        for item in segmentation:
+        for item in timestamps:
           output_file.write(json.dumps(item + (str(uuid.uuid1()),)) + "\n")
 
 def main():
@@ -45,8 +45,8 @@ def main():
     total = sum(1 for _ in for_total)
     for audio in tqdm(input_files, total=total):
         filename = audio.stem
-        segmentation = segmenter(audio)
-        save_timestamps(output_folder / f"{filename}.jsonl", segmentation)
+        timestamps = segmenter(audio)
+        save_timestamps(output_folder / f"{filename}.jsonl", timestamps)
 
 if __name__ == "__main__":
     main()
