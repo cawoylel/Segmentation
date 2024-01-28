@@ -108,11 +108,12 @@ def generate_audio_chunks():
 
                 speech_timestamps = get_speech_timestamps(audio, model, sampling_rate=args.sampling_rate,
                                                             min_speech_duration_ms=args.min_speech_duration_ms,
+                
                                                             max_speech_duration_s=args.max_speech_duration_s)
                 for i, segment in enumerate(speech_timestamps):
                   output_file = current_shard_folder / f"{id}__{i}.wav"
                   save_audio(output_file,
-                  collect_chunks(segment, audio), sampling_rate=args.sampling_rate) 
+                  collect_chunks([segment], audio), sampling_rate=args.sampling_rate) 
 
 if __name__ == "__main__":
     generate_audio_chunks()
