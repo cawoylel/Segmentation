@@ -56,6 +56,8 @@ def create_shard_folder(corpus, id_jsonl, shard_id):
   shard_folder.mkdir(exist_ok=True, parents=True)
   return shard_folder
 
+def is_shard_full(current_shard_folder, max_files_per_shard):
+  return True if len(os.listdir(current_shard_folder)) > max_files_per_shard else False
 
 def generate_audio_chunks():
   """
@@ -95,13 +97,11 @@ def generate_audio_chunks():
               offset = int(offset * sr)
               utterance = audio[onset:offset]
 
-              if len(os.listdir(current_shard_folder)) >= max_files_per_shard:
+              if threshold <= 30:
+                if is_shard_full(current_shard_folder, max_files_per_shard):
                   shard_id += 1
                   current_shard_folder = create_shard_folder(args.output_folder, basename, shard_id)
-              
-              
-
-              if threshold <= 30:
+                
                 output_file = current_shard_folder / f"{id}.wav"
                 sf.write(output_file, utterance, sr)
 
@@ -110,20 +110,28 @@ def generate_audio_chunks():
                 tmp_folder =  Path("SEGMENTED", "temp_segments")
                 tmp_folder.mkdir(exist_ok=True, parents=True)
 
-                output_file = tmp_folder / f"{id}.wav"
-                sf.write(output_file, utterance, sr)
+                tmp_file = tmp_folder / f"{id}.wav"
+                sf.write(tmp_file, utterance, sr)
 
                 torch.set_num_threads(1)
 
-                wav = read_audio(output_file, sampling_rate=args.sampling_rate)
+                wav = read_audio(tmp_file, sampling_rate=args.sampling_rate)
 
                 speech_timestamps = get_speech_timestamps(wav, model, sampling_rate=args.sampling_rate,
                                                             min_speech_duration_ms=args.min_speech_duration_ms,
                                                             max_speech_duration_s=args.max_speech_duration_s)
+                
                 for i, segment in enumerate(speech_timestamps):
+                  
+                  if is_shard_full(current_shard_folder, max_files_per_shard):
+                    shard_id += 1
+                    current_shard_folder = create_shard_folder(args.output_folder, basename, shard_id)
+
                   output_file = current_shard_folder / f"{id}__{i}.wav"
                   save_audio(output_file,
                   collect_chunks([segment], wav), sampling_rate=args.sampling_rate) 
+
+                os.remove(tmp_file)
 
 if __name__ == "__main__":
     generate_audio_chunks()
