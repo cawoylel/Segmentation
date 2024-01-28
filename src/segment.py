@@ -112,7 +112,7 @@ def generate_audio_chunks():
                 for i, segment in enumerate(speech_timestamps):
                   output_file = current_shard_folder / f"{id}__{i}.wav"
                   save_audio(output_file,
-                  collect_chunks([segment], audio), sampling_rate=args.sampling_rate) 
+                  collect_chunks(segment, audio), sampling_rate=args.sampling_rate) 
 
 if __name__ == "__main__":
     generate_audio_chunks()
