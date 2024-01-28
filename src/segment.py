@@ -26,13 +26,13 @@ def parse_args():
  
     parser.add_argument("-m", "--min_speech_duration_ms",
                         help="Minimum segment speech duration in miniseconds",
-                        required=True,
+                        required=False,
                         default=3000,
                         type=int)
   
     parser.add_argument("-n", "--max_speech_duration_s",
                         help="Maximum segment speech duration in seconds",
-                        required=True,
+                        required=False,
                         default=30,
                         type=int) 
       
@@ -44,7 +44,7 @@ def parse_args():
 
     parser.add_argument("-f", "--max_files_per_shard",
                         help="The maximum number of files in each shard",
-                        required=True,
+                        required=False,
                         default=10,
                         type=int)   
      
@@ -61,6 +61,15 @@ def generate_audio_chunks():
   """
   Generate audio segments from jsonl timestamps files in .wav format
   """
+
+  model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
+                                                model='silero_vad',
+                                                force_reload=True,
+                                                onnx=True)
+
+  (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = utils
+
+
   args = parse_args()
   data = Path(args.data)
 
@@ -79,8 +88,8 @@ def generate_audio_chunks():
     with open(jsonl, "r") as segmentation:
         for line in segmentation:
             label, onset, offset, id = eval(line)
-            threshold = offset - onset
             if "speech" in label:
+              threshold = offset - onset
               
               onset = int(onset * sr)
               offset = int(offset * sr)
@@ -97,23 +106,24 @@ def generate_audio_chunks():
                 sf.write(output_file, utterance, sr)
 
               else:
+                # Save temp segments > 30 to apply silero
+                tmp_folder =  Path("SEGMENTED", "temp_segments")
+                tmp_folder.mkdir(exist_ok=True, parents=True)
+
+                output_file = tmp_folder / f"{id}.wav"
+                sf.write(output_file, utterance, sr)
+
                 torch.set_num_threads(1)
-                model, utils = torch.hub.load(repo_or_dir='snakers4/silero-vad',
-                                                model='silero_vad',
-                                                force_reload=True,
-                                                onnx=True)
 
-                (get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = utils
+                wav = read_audio(output_file, sampling_rate=args.sampling_rate)
 
-
-                speech_timestamps = get_speech_timestamps(audio, model, sampling_rate=args.sampling_rate,
+                speech_timestamps = get_speech_timestamps(wav, model, sampling_rate=args.sampling_rate,
                                                             min_speech_duration_ms=args.min_speech_duration_ms,
-                
                                                             max_speech_duration_s=args.max_speech_duration_s)
                 for i, segment in enumerate(speech_timestamps):
                   output_file = current_shard_folder / f"{id}__{i}.wav"
                   save_audio(output_file,
-                  collect_chunks([segment], audio), sampling_rate=args.sampling_rate) 
+                  collect_chunks([segment], wav), sampling_rate=args.sampling_rate) 
 
 if __name__ == "__main__":
     generate_audio_chunks()
